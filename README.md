@@ -106,7 +106,15 @@ Source IP: 192.168.1.50
 Source IP: 192.168.1.75
 ```
 ---
+## Detection Rules
 
+| Detection | Default threshold | Time window |
+|---|---:|---:|
+| Port scan | 10 unique destination ports | 10 seconds |
+| SYN flood | 50 SYN packets | 10 seconds |
+| Traffic spike | 200 packets from one source | 10 seconds |
+
+---
 ## Author
 Anag Venkat
 
