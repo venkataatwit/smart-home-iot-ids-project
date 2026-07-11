@@ -58,8 +58,8 @@ iot-intrusion-detection-system/
 Clone the repository:
 
 ```bash
-git clone https://github.com/anagvenkat33/iot-intrusion-detection-system.git
-cd iot-intrusion-detection-system
+[git clone https://github.com/anagvenkat33/iot-intrusion-detection-system.git
+cd iot-intrusion-detection-system](https://github.com/venkataatwit/smart-home-iot-ids-project)
 ```
 
 Install dependencies:
