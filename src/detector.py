@@ -23,11 +23,13 @@ class IntrusionDetector:
         syn_flood_threshold: int = 50,
         traffic_spike_threshold: int = 750,
         window_seconds: int = 10,
+        alert_cooldown_seconds: int = 60,
     ) -> None:
         self.port_scan_threshold = port_scan_threshold
         self.syn_flood_threshold = syn_flood_threshold
         self.traffic_spike_threshold = traffic_spike_threshold
         self.window_seconds = window_seconds
+        self.alert_cooldown_seconds = alert_cooldown_seconds
 
         self.port_activity: dict[tuple[str, str], deque] = defaultdict(deque)
         self.syn_activity: dict[tuple[str, str], deque] = defaultdict(deque)
@@ -35,7 +37,8 @@ class IntrusionDetector:
 
         self.triggered_port_scans: set[tuple[str, str]] = set()
         self.triggered_syn_floods: set[tuple[str, str]] = set()
-        self.triggered_traffic_spikes: set[str] = set()
+
+        self.last_traffic_spike_alert: dict[str, float] = {}
 
     def process_packet(self, packet: Packet) -> list[Alert]:
         alerts: list[Alert] = []
@@ -185,29 +188,38 @@ class IntrusionDetector:
         activity.append(timestamp)
         self._remove_old_records(activity, timestamp)
 
-        if len(activity) >= self.traffic_spike_threshold:
-            if source_ip not in self.triggered_traffic_spikes:
-                self.triggered_traffic_spikes.add(source_ip)
+        if len(activity) < self.traffic_spike_threshold:
+            return []
 
-                return [
-                    Alert(
-                        timestamp=timestamp,
-                        alert_type="Traffic Spike",
-                        source_ip=source_ip,
-                        destination_ip=destination_ip,
-                        severity="MEDIUM",
-                        description=(
-                            f"Detected {len(activity)} packets from this source "
-                            f"within {self.window_seconds} seconds."
-                        ),
-                    )
-                ]
-        else:
-            self.triggered_traffic_spikes.discard(source_ip)
+        last_alert_time = self.last_traffic_spike_alert.get(source_ip)
 
-        return []
+        if (
+            last_alert_time is not None
+            and timestamp - last_alert_time < self.alert_cooldown_seconds
+        ):
+            return []
 
-    def _remove_old_records(self, records: deque, timestamp: float) -> None:
+        self.last_traffic_spike_alert[source_ip] = timestamp
+
+        return [
+            Alert(
+                timestamp=timestamp,
+                alert_type="Traffic Spike",
+                source_ip=source_ip,
+                destination_ip=destination_ip,
+                severity="MEDIUM",
+                description=(
+                    f"Detected {len(activity)} packets from this source "
+                    f"within {self.window_seconds} seconds."
+                ),
+            )
+        ]
+
+    def _remove_old_records(
+        self,
+        records: deque,
+        timestamp: float,
+    ) -> None:
         cutoff = timestamp - self.window_seconds
 
         while records:
