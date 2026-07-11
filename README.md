@@ -52,7 +52,15 @@ iot-intrusion-detection-system/
 ```
 
 ---
+## Windows Requirements
 
+- Python 3.10 or newer
+- Npcap installed
+- PowerShell or Command Prompt opened as Administrator
+
+---
+
+---
 ## Installation
 
 Clone the repository:
@@ -97,16 +105,6 @@ Source IP: 192.168.1.50
 [ALERT] SYN Flood Suspected
 Source IP: 192.168.1.75
 ```
-
----
-
-## Future Improvements
-- Machine learning-based anomaly detection
-- Web dashboard for monitoring alerts
-- Email or SMS notifications
-- Additional attack signatures
-- Docker deployment
-
 ---
 
 ## Author
