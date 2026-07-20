@@ -21,7 +21,7 @@ class IntrusionDetector:
         self,
         port_scan_threshold: int = 10,
         syn_flood_threshold: int = 50,
-        traffic_spike_threshold: int = 750,
+        traffic_spike_threshold: int = 200,
         window_seconds: int = 10,
         alert_cooldown_seconds: int = 60,
     ) -> None:
