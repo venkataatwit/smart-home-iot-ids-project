@@ -19,12 +19,16 @@ def initialize_alert_file(
     output_path: str = "data/alerts.csv",
 ) -> None:
     """
-    Create a fresh alerts CSV file with a header.
+    Create the alerts CSV file and write the header when necessary.
 
-    This overwrites the previous alerts file each time the IDS starts.
+    Existing alert history is preserved. If the file already exists and
+    contains data, no changes are made.
     """
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
+
+    if path.exists() and path.stat().st_size > 0:
+        return
 
     with path.open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=CSV_FIELDS)
@@ -36,7 +40,10 @@ def save_alert(
     output_path: str = "data/alerts.csv",
 ) -> None:
     """
-    Append one alert to the CSV file.
+    Append one alert to the alerts CSV file.
+
+    The CSV file and its parent directory are created automatically
+    when they do not already exist.
     """
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -68,7 +75,35 @@ def save_alerts(
     output_path: str = "data/alerts.csv",
 ) -> None:
     """
-    Append multiple alerts to the CSV file.
+    Append multiple alerts to the alerts CSV file.
+
+    The file is opened only once, making this more efficient than calling
+    save_alert separately for every alert.
     """
-    for alert in alerts:
-        save_alert(alert, output_path)
+    if not alerts:
+        return
+
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    file_needs_header = not path.exists() or path.stat().st_size == 0
+
+    with path.open("a", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=CSV_FIELDS)
+
+        if file_needs_header:
+            writer.writeheader()
+
+        for alert in alerts:
+            writer.writerow(
+                {
+                    "timestamp": datetime.fromtimestamp(
+                        alert.timestamp
+                    ).isoformat(timespec="seconds"),
+                    "alert_type": alert.alert_type,
+                    "source_ip": alert.source_ip,
+                    "destination_ip": alert.destination_ip,
+                    "severity": alert.severity,
+                    "description": alert.description,
+                }
+            )
