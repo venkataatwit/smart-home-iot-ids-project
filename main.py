@@ -8,7 +8,7 @@ from src.detector import IntrusionDetector
 detector = IntrusionDetector(
     port_scan_threshold=10,
     syn_flood_threshold=50,
-    traffic_spike_threshold=750,
+    traffic_spike_threshold=200,
     window_seconds=10,
     alert_cooldown_seconds=60,
 )
